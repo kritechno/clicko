@@ -34,6 +34,8 @@ const S = {
   taskSprint: ['one sprint', 'один спринт'],
   switchRu: ['switch your keyboard to russian', 'переключи раскладку на русскую'],
   switchEn: ['switch your keyboard to english', 'переключи раскладку на английскую'],
+  capsLock: ['caps lock is on', 'включён caps lock'],
+  practice: ['practice', 'тренируем'],
   escLeave: ['esc to leave', 'esc - выйти'],
   escFinish: ['esc to finish', 'esc - закончить'],
   wpm: ['wpm', 'сл/мин'],

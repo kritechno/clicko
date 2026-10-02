@@ -177,11 +177,11 @@ export default function App() {
         <div className="home-top">
           <span>{t('level', level)} · {titleFor(ui, level)}</span>
           <span>{s.beans} ◦ {t('beans')}</span>
-          <span>{t(s.lang === 'en' ? 'trackEn' : 'trackRu')}{s.muted ? ` · ${t('muted')}` : ''}</span>
+          <span>{t('practice')}: {t(s.lang === 'en' ? 'trackEn' : 'trackRu')}{s.muted ? ` · ${t('muted')}` : ''}</span>
         </div>
         <div className="xp"><i style={{ width: `${pct}%` }} /></div>
 
-        <button className="go" onClick={goOn}>
+        <button className="go" key={s.lang} onClick={goOn}>
           <small>{t('next')}</small>
           <b>{nextText}</b>
           <span><kbd>space</kbd> {t('continue')}</span>
@@ -206,7 +206,9 @@ export default function App() {
               <kbd>{i + 1}</kbd> {t((['lessons', 'modes', 'shop', 'stamps', 'settings'] as const)[i])}
             </button>
           ))}
-          <button onClick={() => s.setLang(s.lang === 'en' ? 'ru' : 'en')}><kbd>L</kbd> {t('language')}</button>
+          <button className="lang" onClick={(e) => { s.setLang(s.lang === 'en' ? 'ru' : 'en'); e.currentTarget.blur(); }}>
+            <kbd>L</kbd> {t('practice')}: <b className={s.lang === 'en' ? 'on' : ''}>english</b> / <b className={s.lang === 'ru' ? 'on' : ''}>русский</b>
+          </button>
         </nav>
       </div>
     );

@@ -31,7 +31,7 @@ export function Result({ r, rw, ui, t, onNext, onRetry, onHome }: Props) {
   const shownAt = useRef(performance.now());
   useKeys((e) => {
     // timed modes end mid-word; don't let the tail of that typing press a button here
-    if (e.metaKey || e.ctrlKey || e.altKey || performance.now() - shownAt.current < 700) return;
+    if (e.metaKey || e.ctrlKey || e.altKey || performance.now() - shownAt.current < 400) return;
     if (e.key === 'Enter') { e.preventDefault(); onNext(); }
     else if (e.code === 'KeyR' && r.mode !== 'placement') onRetry();
     else if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); onHome(); }

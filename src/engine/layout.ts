@@ -41,6 +41,14 @@ export function keyFor(lang: Lang, ch: string): KeyPos | null {
   return null;
 }
 
+/** The character the same physical key produces on the other layout. */
+export function translate(ch: string, from: Lang, to: Lang): string | null {
+  const pos = keyFor(from, ch);
+  if (!pos || pos.row === 4) return pos ? ch : null;
+  const k = ROWS[pos.row][pos.col];
+  return to === 'en' ? (pos.shift ? k.enS : k.en) : pos.shift ? k.ruS : k.ru;
+}
+
 export function scriptOf(ch: string): Script | null {
   if (/[a-z]/i.test(ch)) return 'latin';
   if (/[а-яё]/i.test(ch)) return 'cyrillic';

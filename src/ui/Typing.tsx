@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
-import type { Lang } from '../engine/layout';
+import { scriptOf, translate, type Lang } from '../engine/layout';
 import type { Line, SessionResult, SessionSpec } from '../engine/session';
 import { createTyping, extend, press, summary, type TypingState } from '../engine/typing';
 import { playChime, playKey, playMiss, playTick, type SoundPack } from '../audio/keys';
@@ -48,7 +48,9 @@ export function Typing({ spec, t, showKeyboard, pack, onFlow, onFinish, onAbort 
   const c = st.current;
 
   const [, bump] = useReducer((x: number) => x + 1, 0);
-  const [hint, setHint] = useState<Lang | null>(null);
+  const [hint, setHint] = useState<Lang | 'caps' | null>(null);
+  /** the OS keyboard is on the other layout, so keys are mapped by position */
+  const remap = useRef(false);
   const [started, setStarted] = useState(false);
   const [left, setLeft] = useState(spec.timeLimit ?? 0);
   const hintTimer = useRef(0);
@@ -91,7 +93,7 @@ export function Typing({ spec, t, showKeyboard, pack, onFlow, onFinish, onAbort 
   useEffect(() => () => clearTimeout(hintTimer.current), []);
 
   useKeys((ev) => {
-    if (ev.metaKey || ev.ctrlKey || ev.altKey || c.finished) return;
+    if (ev.metaKey || ev.ctrlKey || ev.altKey || ev.repeat || c.finished) return;
     if (ev.key === 'Escape') {
       ev.preventDefault();
       if (spec.more && e.pos >= 10) finish();
@@ -101,14 +103,27 @@ export function Typing({ spec, t, showKeyboard, pack, onFlow, onFinish, onAbort 
     if (ev.key.length !== 1) return;
     ev.preventDefault();
 
-    const now = performance.now();
-    const prevAt = e.lastAt;
-    const res = press(e, ev.key, now);
-    if (res === 'ignored') return;
-    if (res === 'mismatch') {
-      setHint(lines.current[c.idx].lang);
+    const flash = (h: Lang | 'caps') => {
+      setHint(h);
       clearTimeout(hintTimer.current);
       hintTimer.current = window.setTimeout(() => setHint(null), 2500);
+    };
+    // Typing should work whichever layout the OS is on: when letters arrive in the
+    // other alphabet, read keys by their position instead.
+    const lineLang = lines.current[c.idx].lang;
+    const typedScript = scriptOf(ev.key);
+    if (typedScript) remap.current = typedScript !== (lineLang === 'en' ? 'latin' : 'cyrillic');
+    let key = ev.key;
+    if (remap.current) key = translate(key, lineLang === 'en' ? 'ru' : 'en', lineLang) ?? key;
+    const expected = e.text[e.pos];
+    if (key !== expected && key.toLowerCase() === expected.toLowerCase() && ev.getModifierState?.('CapsLock')) flash('caps');
+
+    const now = performance.now();
+    const prevAt = e.lastAt;
+    const res = press(e, key, now);
+    if (res === 'ignored') return;
+    if (res === 'mismatch') {
+      flash(lineLang);
       return;
     }
     if (!started) setStarted(true);
@@ -170,7 +185,7 @@ export function Typing({ spec, t, showKeyboard, pack, onFlow, onFinish, onAbort 
       </div>
 
       <div className="flowbar"><i style={{ width: `${e.flow * 100}%` }} /></div>
-      <div className="hint">{hint ? t(hint === 'ru' ? 'switchRu' : 'switchEn') : ' '}</div>
+      <div className="hint">{hint ? t(hint === 'caps' ? 'capsLock' : hint === 'ru' ? 'switchRu' : 'switchEn') : ' '}</div>
 
       {showKeyboard && <Keyboard lang={line.lang} next={e.text[e.pos]} />}
       <div className="foot">{t(spec.more ? 'escFinish' : 'escLeave')}</div>

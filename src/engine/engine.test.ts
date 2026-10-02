@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isMismatch, keyFor } from './layout';
+import { isMismatch, keyFor, translate } from './layout';
 import { createTyping, extend, press, summary } from './typing';
 import { mergeKeys, weakKeys } from './stats';
 import { rng, wrapLines, pickWords } from './generator';
@@ -62,6 +62,14 @@ describe('layout', () => {
     expect(keyFor('ru', 'Ё')).toEqual({ row: 0, col: 0, shift: true });
     expect(keyFor('ru', ',')).toEqual({ row: 3, col: 9, shift: true });
     expect(keyFor('en', ' ')?.row).toBe(4);
+  });
+
+  it('maps a key to the same position on the other layout', () => {
+    expect(translate('l', 'en', 'ru')).toBe('д');
+    expect(translate('Д', 'ru', 'en')).toBe('L');
+    expect(translate('/', 'en', 'ru')).toBe('.');
+    expect(translate(' ', 'en', 'ru')).toBe(' ');
+    expect(translate('№', 'en', 'ru')).toBeNull();
   });
 });
 
