@@ -4,6 +4,8 @@ A calm, lofi typing trainer for English and Russian. Runs entirely in the browse
 
 **Play it: https://kritechno.github.io/clicko/**
 
+![Clicko showing a warm-up line and an on-screen keyboard](docs/screenshot.jpg)
+
 ## What it does
 
 - Ten chapters per language, from the home row to long-form text, with a short warm-up that places you at the right level.
