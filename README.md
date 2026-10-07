@@ -1,10 +1,10 @@
 # Clicko
 
-A calm, lofi typing trainer for English and Russian. Runs entirely in the browser.
+A cozy pixel-art typing trainer for English and Russian. Runs entirely in the browser.
 
 **Play it: https://kritechno.github.io/clicko/**
 
-![Clicko showing a warm-up line and an on-screen keyboard](docs/screenshot.jpg)
+![Clicko's pixel-art room, English typing practice and on-screen keyboard](docs/screenshot.jpg)
 
 ## What it does
 
@@ -12,6 +12,8 @@ A calm, lofi typing trainer for English and Russian. Runs entirely in the browse
 - Practice modes that unlock as you level up: flow, quotes, 30- and 60-second sprints, weak keys, clean hands, language switching and on-the-beat rhythm typing.
 - Tracks your slowest keys and builds practice text from them.
 - A room that fills with items as you progress, plus daily tasks, weekly postcards and stamps.
+- Five room palettes and a shop with illustrated lamps, mugs, plants, cats and posters to make the space your own.
+- Gentle room animation: a breathing sleeping cat, rain, mug steam, candles and occasional lamp flicker. Turn it off in settings; system reduced-motion preferences are respected.
 - Works whichever keyboard layout is active, and tells you when to switch.
 - Interface in English and Russian.
 

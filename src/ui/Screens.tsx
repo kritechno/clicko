@@ -12,6 +12,7 @@ import { ambienceName, type Ambience } from '../audio/ambience';
 import { playKey, type SoundPack } from '../audio/keys';
 import type { T } from '../i18n';
 import { useKeys } from './hooks';
+import { ShopPreview } from './RoomSprites';
 
 export interface Row {
   label: ReactNode;
@@ -19,13 +20,14 @@ export interface Row {
   /** section heading, not selectable */
   head?: boolean;
   dim?: boolean;
+  equipped?: boolean;
   onEnter?: () => void;
   onLeft?: () => void;
   onRight?: () => void;
 }
 
 /** Keyboard-first list: arrows move, enter acts, esc goes back. */
-export function List({ title, rows, note, t, onBack }: { title: string; rows: Row[]; note?: ReactNode; t: T; onBack: () => void }) {
+export function List({ title, rows, note, t, onBack, variant }: { title: string; rows: Row[]; note?: ReactNode; t: T; onBack: () => void; variant?: 'shop' }) {
   const selectable = rows.map((r, i) => (r.head ? -1 : i)).filter((i) => i >= 0);
   const [sel, setSel] = useState(0);
   const cur = selectable[Math.min(sel, selectable.length - 1)];
@@ -35,6 +37,7 @@ export function List({ title, rows, note, t, onBack }: { title: string; rows: Ro
 
   useKeys((e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'Enter' && e.target instanceof HTMLElement && e.target.closest('button') && !e.target.closest('.list-option')) return;
     const row = rows[cur];
     if (e.key === 'ArrowDown') setSel((s) => Math.min(selectable.length - 1, s + 1));
     else if (e.key === 'ArrowUp') setSel((s) => Math.max(0, s - 1));
@@ -47,9 +50,9 @@ export function List({ title, rows, note, t, onBack }: { title: string; rows: Ro
   });
 
   return (
-    <div className="screen">
+    <div className={`screen ${variant === 'shop' ? 'shop-screen' : ''}`}>
       <h2>{title}</h2>
-      <ul className="list">
+      <ul className={`list ${variant === 'shop' ? 'shop-list' : ''}`}>
         {rows.map((r, i) =>
           r.head ? (
             <li key={i} className="head">{r.label}</li>
@@ -57,17 +60,19 @@ export function List({ title, rows, note, t, onBack }: { title: string; rows: Ro
             <li
               key={i}
               ref={i === cur ? ref : undefined}
-              className={`${i === cur ? 'sel' : ''} ${r.dim ? 'dim' : ''}`}
-              onClick={() => { setSel(selectable.indexOf(i)); r.onEnter?.(); }}
+              className={`${i === cur ? 'sel' : ''} ${r.dim ? 'dim' : ''} ${r.equipped ? 'equipped' : ''}`}
             >
-              <span>{r.label}</span>
-              <span className="right">{r.right}</span>
+              <button className="list-option" aria-pressed={r.equipped} onFocus={() => setSel(selectable.indexOf(i))}
+                onClick={() => { setSel(selectable.indexOf(i)); r.onEnter?.(); }}>
+                <span>{r.label}</span>
+                <span className="right">{r.right}</span>
+              </button>
             </li>
           ),
         )}
       </ul>
-      <div className="note">{note ?? ' '}</div>
-      <div className="foot">{t('select')} · {t('back')}</div>
+      <div className="note" role="status">{note ?? ' '}</div>
+      <div className="foot"><span>{t('select')}</span><button onClick={onBack}>{t('back')}</button></div>
     </div>
   );
 }
@@ -161,14 +166,15 @@ export function ShopScreen({ t, onBack }: { t: T; onBack: () => void }) {
       const owned = s.owned.includes(i.id);
       const on = s.equipped[slot] === i.value;
       return {
-        label: i.name[ui],
+        label: <span className="shop-item"><ShopPreview item={i} /><span>{i.name[ui]}</span></span>,
+        equipped: on,
         right: on ? t('equipped') : owned ? t('owned') : `${i.price} ◦`,
         dim: !owned && s.beans < i.price,
         onEnter: () => setNote(s.take(i.id) ? '' : t('notEnough')),
       };
     }),
   ]);
-  return <List title={`${t('shop')} · ${s.beans} ◦ ${t('beans')}`} rows={rows} note={note} t={t} onBack={onBack} />;
+  return <List title={`${t('shop')} · ${s.beans} ◦ ${t('beans')}`} rows={rows} note={note} t={t} onBack={onBack} variant="shop" />;
 }
 
 export function BoardScreen({ t, onBack }: { t: T; onBack: () => void }) {
@@ -205,7 +211,7 @@ const bar = (v: number) => '▮'.repeat(Math.round(v * 10)) + '▯'.repeat(10 - 
 
 const SAVE_KEYS: (keyof SaveData)[] = [
   'uiLang', 'lang', 'langs', 'welcomed', 'tracks', 'lessons', 'xp', 'beans', 'keyStats', 'bigrams', 'history', 'best',
-  'stamps', 'owned', 'equipped', 'daily', 'candles', 'weekly', 'postcards', 'counters', 'showKeyboard', 'muted', 'vol',
+  'stamps', 'owned', 'equipped', 'daily', 'candles', 'weekly', 'postcards', 'counters', 'showKeyboard', 'roomMotion', 'muted', 'vol',
 ];
 
 export function SettingsScreen({ t, tracks, ambiences, onBack }: { t: T; tracks: number; ambiences: Ambience[]; onBack: () => void }) {
@@ -266,6 +272,7 @@ export function SettingsScreen({ t, tracks, ambiences, onBack }: { t: T; tracks:
     { label: t('general'), head: true },
     { label: t('uiLanguage'), right: s.uiLang === 'en' ? 'english' : 'русский', onEnter: () => s.setUi(s.uiLang === 'en' ? 'ru' : 'en') },
     { label: t('showKb'), right: t(s.showKeyboard ? 'on' : 'off'), onEnter: () => s.toggle('showKeyboard') },
+    { label: ui === 'ru' ? 'анимация комнаты' : 'room animations', right: t(s.roomMotion ? 'on' : 'off'), onEnter: () => s.toggle('roomMotion') },
     { label: t('exportSave'), onEnter: exportSave },
     { label: t('importSave'), onEnter: () => file.current?.click() },
     { label: t('reset'), onEnter: () => (armed ? (s.reset(), setArmed(false)) : setArmed(true)) },

@@ -48,6 +48,7 @@ export interface SaveData {
   postcards: number;
   counters: { yo: number; flowMs: number; chars: number; sessions: number };
   showKeyboard: boolean;
+  roomMotion: boolean;
   muted: boolean;
   vol: Record<VolKey, number>;
 }
@@ -80,7 +81,7 @@ interface Actions {
   /** buys if needed, then equips; returns false when beans are short */
   take: (id: string) => boolean;
   setVol: (k: VolKey, v: number) => void;
-  toggle: (k: 'muted' | 'showKeyboard') => void;
+  toggle: (k: 'muted' | 'showKeyboard' | 'roomMotion') => void;
   importSave: (data: Partial<SaveData>) => void;
   reset: () => void;
 }
@@ -99,7 +100,7 @@ function initial(): SaveData {
     daily: { date: '', tasks: [] }, candles: [],
     weekly: { week: '', chars: 0, done: false }, postcards: 0,
     counters: { yo: 0, flowMs: 0, chars: 0, sessions: 0 },
-    showKeyboard: true, muted: false,
+    showKeyboard: true, roomMotion: true, muted: false,
     vol: { keys: 0.7, music: 0.4 },
   };
 }

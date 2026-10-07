@@ -15,6 +15,7 @@ import { Typing } from './ui/Typing';
 import { Result } from './ui/Result';
 import { BoardScreen, MapScreen, ModesScreen, SettingsScreen, ShopScreen } from './ui/Screens';
 import { useKeys } from './ui/hooks';
+import { SHOP } from './content/shop';
 
 type View = 'home' | 'typing' | 'result' | 'map' | 'modes' | 'shop' | 'board' | 'settings';
 const MENU: View[] = ['map', 'modes', 'shop', 'board', 'settings'];
@@ -69,6 +70,7 @@ export default function App() {
   const level = levelOf(s.xp);
   const track = s.tracks[s.lang];
   const upcoming = track.placed ? nextLesson(s.lessons, track, s.lang) : null;
+  const paletteName = SHOP.find((item) => item.slot === 'palette' && item.value === s.equipped.palette)?.name[ui];
 
   useEffect(() => {
     s.ensureDaily();
@@ -125,6 +127,7 @@ export default function App() {
 
   useKeys((e) => {
     if (view !== 'home' || !s.welcomed || e.metaKey || e.ctrlKey || e.altKey) return;
+    if ((e.code === 'Space' || e.key === 'Enter') && e.target instanceof HTMLElement && e.target.closest('button')) return;
     if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); goOn(); }
     else if (/^Digit[1-5]$/.test(e.code)) setView(MENU[Number(e.code.slice(5)) - 1]);
     else if (e.code === 'KeyL') s.setLang(s.lang === 'en' ? 'ru' : 'en');
@@ -216,7 +219,14 @@ export default function App() {
 
   return (
     <div className={`app view-${view}`}>
-      <div className="room-wrap">
+      <header className="app-topbar">
+        <button className="wordmark" onClick={home} aria-label={ui === 'ru' ? 'clicko · в комнату' : 'clicko · back to room'}>
+          <span className="brand-pixels" aria-hidden="true" />clicko<span className="brand-dot">.</span>
+        </button>
+        <span className="room-caption">{ui === 'ru' ? 'твой тихий уголок' : 'your quiet corner'}</span>
+        <span className="palette-label"><i aria-hidden="true" />{paletteName}</span>
+      </header>
+      <div className={`room-wrap ${s.roomMotion ? '' : 'room-paused'}`}>
         <Room
           items={roomItems(s.lessons, s.tracks)}
           equipped={s.equipped}
@@ -224,6 +234,7 @@ export default function App() {
           candles={lastDays(today, 7).map((d) => s.candles.includes(d))}
           stamps={Object.keys(s.stamps).length}
           postcards={s.postcards}
+          label={ui === 'ru' ? 'Уютная пиксельная комната с предметами, открытыми за практику' : 'A cozy pixel-art room with furnishings unlocked through practice'}
         />
       </div>
       <main className="panel">{panel}</main>
